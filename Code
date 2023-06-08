@@ -1,0 +1,62 @@
+import datetime
+import pyttsx3
+import speech_recognition as sr
+import wikipedia
+
+# Initialize text-to-speech engine
+engine = pyttsx3.init()
+
+# Set voice
+voices = engine.getProperty('voices')
+engine.setProperty('voice', voices[1].id)
+
+# Function to convert text to speech
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
+
+# Function to get the current date and time
+def get_datetime():
+    now = datetime.datetime.now()
+    date_string = now.strftime("%A %d %B %Y")
+    time_string = now.strftime("%I:%M %p")
+    return f"Today is {date_string} and the time is {time_string}"
+
+# Function to search Wikipedia for a given query
+def search_wikipedia(query):
+    speak('Searching Wikipedia...')
+    query = query.replace("wikipedia", "")
+    results = wikipedia.summary(query, sentences=2)
+    speak("According to Wikipedia")
+    speak(results)
+
+# Main program loop
+while True:
+    # Initialize speech recognition
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        audio = r.listen(source)
+
+    try:
+        # Convert speech to text
+        text = r.recognize_google(audio)
+        print("You said: ", text)
+
+        # Process user input
+        if 'hello' in text.lower():
+            speak("Hello! How can I help you?")
+        elif 'what is the time' in text.lower():
+            speak(get_datetime())
+        elif 'search wikipedia' in text.lower():
+            search_wikipedia(text)
+        elif 'thank you' in text.lower() or 'bye' in text.lower():
+            speak("You're welcome. Goodbye!")
+            break
+        else:
+            speak("I'm sorry, I don't understand. Can you please repeat that?")
+
+    except sr.UnknownValueError:
+        speak("Sorry, I could not understand what you said. Can you please try again?")
+    except sr.RequestError as e:
+        speak(f"Sorry, there was an error processing your request. {e}")
